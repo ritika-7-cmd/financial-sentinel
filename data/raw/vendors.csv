@@ -1,0 +1,66 @@
+vendor_id,category,typical_txn_mean,typical_txn_sigma,is_new_vendor
+VEN000,Travel,10664.59,0.46,False
+VEN001,Travel,6961.58,0.31,False
+VEN002,Equipment,17637.16,0.44,False
+VEN003,Client Entertainment,16620.49,0.53,False
+VEN004,Office Supplies,31356.04,0.44,False
+VEN005,Equipment,16944.55,0.4,False
+VEN006,Utilities,77803.71,0.29,False
+VEN007,Client Entertainment,31611.56,0.38,False
+VEN008,Office Supplies,15917.58,0.37,False
+VEN009,Equipment,1857.48,0.35,True
+VEN010,Office Supplies,68608.38,0.32,False
+VEN011,Office Supplies,16409.23,0.46,False
+VEN012,Equipment,20950.46,0.49,False
+VEN013,Equipment,4293.76,0.44,False
+VEN014,Utilities,43588.78,0.52,False
+VEN015,Client Entertainment,11402.15,0.41,False
+VEN016,Software,5576.29,0.4,False
+VEN017,Office Supplies,21844.15,0.5,True
+VEN018,Travel,18055.96,0.3,False
+VEN019,Software,2308.6,0.25,False
+VEN020,Equipment,40951.26,0.3,False
+VEN021,Consulting,3103.88,0.36,False
+VEN022,Travel,17748.53,0.34,False
+VEN023,Utilities,2944.81,0.37,False
+VEN024,Office Supplies,24450.05,0.41,False
+VEN025,Travel,6458.34,0.5,False
+VEN026,Utilities,5397.74,0.55,False
+VEN027,Client Entertainment,42450.81,0.37,False
+VEN028,Consulting,15139.58,0.39,False
+VEN029,Consulting,5144.34,0.52,True
+VEN030,Equipment,21298.37,0.4,False
+VEN031,Software,1391.07,0.28,False
+VEN032,Consulting,14996.34,0.44,False
+VEN033,Consulting,10398.28,0.27,False
+VEN034,Consulting,21786.84,0.5,False
+VEN035,Client Entertainment,15668.98,0.51,False
+VEN036,Client Entertainment,6090.51,0.51,False
+VEN037,Utilities,5392.39,0.37,False
+VEN038,Equipment,6025.04,0.35,False
+VEN039,Equipment,10393.94,0.53,False
+VEN040,Office Supplies,3259.56,0.25,False
+VEN041,Office Supplies,5339.76,0.44,False
+VEN042,Consulting,36894.47,0.48,False
+VEN043,Equipment,1371.6,0.54,False
+VEN044,Client Entertainment,22825.16,0.47,False
+VEN045,Utilities,5647.37,0.45,False
+VEN046,Travel,15014.84,0.47,False
+VEN047,Utilities,8193.85,0.29,True
+VEN048,Client Entertainment,7511.06,0.55,False
+VEN049,Consulting,2428.91,0.37,False
+VEN050,Equipment,6821.49,0.49,False
+VEN051,Travel,23844.19,0.26,False
+VEN052,Utilities,4730.49,0.45,False
+VEN053,Travel,17932.17,0.51,False
+VEN054,Office Supplies,14915.29,0.32,False
+VEN055,Consulting,8071.34,0.25,False
+VEN056,Software,18337.15,0.37,False
+VEN057,Equipment,40906.34,0.32,False
+VEN058,Client Entertainment,119021.22,0.34,False
+VEN059,Office Supplies,9074.53,0.33,False
+VEN060,Utilities,20216.75,0.35,False
+VEN061,Software,22515.04,0.55,False
+VEN062,Consulting,10560.32,0.42,False
+VEN063,Office Supplies,3823.64,0.43,False
+VEN064,Client Entertainment,63304.04,0.29,False
