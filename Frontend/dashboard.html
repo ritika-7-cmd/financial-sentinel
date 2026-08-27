@@ -4,374 +4,644 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Financial Sentinel</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ── Design tokens ──────────────────────────────────────────
-     Palette: deep navy base, amber alert accent, slate secondary.
-     Chosen to read like a professional risk terminal — not a
-     startup landing page. Every color has a semantic meaning:
-       --bg: base background
-       --surface: card/panel surfaces
-       --border: subtle dividers
-       --text: primary text
-       --muted: secondary/meta text
-       --accent: the risk signal color (amber — universally
-         understood as "pay attention")
-       --critical / --high / --medium / --low: risk tiers
-  ────────────────────────────────────────────────────────── */
-  :root {
-    --bg:       #0f1117;
-    --surface:  #1a1d27;
-    --surface2: #22263a;
-    --border:   #2e3248;
-    --text:     #e8eaf0;
-    --muted:    #7a7f9a;
-    --accent:   #f5a623;
-    --accent2:  #4a9eff;
-    --critical: #e53e3e;
-    --high:     #dd6b20;
-    --medium:   #d69e2e;
-    --low:      #38a169;
-    --font-mono: 'JetBrains Mono', 'Fira Mono', 'Consolas', monospace;
-    --font-body: 'Inter', system-ui, sans-serif;
-  }
+:root {
+  --bg:        #06060f;
+  --pink:      #ff3cac;
+  --cyan:      #00f5d4;
+  --purple:    #7b2ff7;
+  --purple2:   #a855f7;
+  --gold:      #ffb800;
+  --blue:      #3b82f6;
+  --ice:       #00d4ff;
+  --green:     #00ff87;
+  --critical:  #ff3cac;
+  --high:      #ff6b35;
+  --medium:    #ffb800;
+  --low:       #00ff87;
+  --text:      #f0f0ff;
+  --muted:     #6b7280;
+  --surface:   rgba(255,255,255,0.04);
+  --surface2:  rgba(255,255,255,0.07);
+  --border:    rgba(255,255,255,0.08);
+  --font-data: 'Space Grotesk', monospace;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow: hidden;
+}
 
-  /* ── Layout ─────────────────────────────────────────────── */
-  .shell {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    grid-template-rows: 56px 1fr;
-    height: 100vh;
-    overflow: hidden;
-  }
+/* ── Animated mesh background ─────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(123,47,247,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,60,172,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(0,245,212,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgShift 12s ease-in-out infinite alternate;
+}
 
-  /* ── Header ─────────────────────────────────────────────── */
-  header {
-    grid-column: 1 / -1;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-    gap: 12px;
-  }
-  .logo-mark {
-    width: 28px; height: 28px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 800; color: #000;
-  }
-  .logo-text {
-    font-size: 15px; font-weight: 700; letter-spacing: .02em;
-  }
-  .logo-sub {
-    font-size: 11px; color: var(--muted); margin-left: 2px;
-    font-family: var(--font-mono);
-  }
-  .header-right {
-    margin-left: auto;
-    display: flex; align-items: center; gap: 16px;
-  }
-  .api-input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: var(--font-mono);
-    width: 260px;
-  }
-  .api-input::placeholder { color: var(--muted); }
-  .pill {
-    font-size: 11px; font-family: var(--font-mono);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 3px 8px; border-radius: 4px; color: var(--muted);
-  }
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  /* ── Sidebar ─────────────────────────────────────────────── */
-  nav {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 16px 0;
-    overflow-y: auto;
-  }
-  .nav-section {
-    font-size: 10px; font-weight: 600;
-    letter-spacing: .1em; text-transform: uppercase;
-    color: var(--muted); padding: 12px 20px 4px;
-  }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 20px; cursor: pointer;
-    color: var(--muted); font-size: 13px;
-    border-left: 2px solid transparent;
-    transition: all .15s;
-  }
-  .nav-item:hover { color: var(--text); background: var(--surface2); }
-  .nav-item.active {
-    color: var(--accent); border-left-color: var(--accent);
-    background: rgba(245,166,35,.06);
-  }
-  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+@keyframes bgShift {
+  0%   { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0.7; transform: scale(1.05) rotate(1deg); }
+}
 
-  /* ── Main content ────────────────────────────────────────── */
-  main {
-    overflow-y: auto;
-    padding: 24px;
-    display: flex; flex-direction: column; gap: 24px;
-  }
+/* ── Layout ─────────────────────────────────────────────────── */
+.shell {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  grid-template-rows: 52px 1fr;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
 
-  /* ── Pages ───────────────────────────────────────────────── */
-  .page { display: none; flex-direction: column; gap: 20px; }
-  .page.active { display: flex; }
+/* ── Header ─────────────────────────────────────────────────── */
+header {
+  grid-column: 1 / -1;
+  background: rgba(6,6,15,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  position: relative;
+}
 
-  /* ── Page titles ─────────────────────────────────────────── */
-  .page-title {
-    font-size: 18px; font-weight: 700;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .page-sub { font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--purple), var(--pink), var(--cyan), transparent);
+  opacity: 0.6;
+}
 
-  /* ── Stat cards ──────────────────────────────────────────── */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 14px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-  .stat-label {
-    font-size: 11px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
-  }
-  .stat-value {
-    font-size: 26px; font-weight: 800;
-    font-family: var(--font-mono);
-    margin: 4px 0 2px; line-height: 1;
-  }
-  .stat-sub { font-size: 11px; color: var(--muted); }
-  .stat-card.accent-card { border-color: rgba(245,166,35,.3); }
-  .stat-card.accent-card .stat-value { color: var(--accent); }
-  .stat-card.danger-card { border-color: rgba(229,62,62,.3); }
-  .stat-card.danger-card .stat-value { color: var(--critical); }
+.logo-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-data);
+  font-size: 13px; font-weight: 700; color: #fff;
+  box-shadow: 0 0 16px rgba(123,47,247,0.5);
+}
 
-  /* ── Cards / panels ──────────────────────────────────────── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-body { padding: 18px; }
+.logo-text {
+  font-family: var(--font-data);
+  font-size: 14px; font-weight: 600;
+  background: linear-gradient(90deg, var(--text), var(--purple2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-  /* ── Alert table ─────────────────────────────────────────── */
-  table { width: 100%; border-collapse: collapse; }
-  th {
-    text-align: left; font-size: 11px;
-    text-transform: uppercase; letter-spacing: .07em;
-    color: var(--muted); padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-  }
-  td {
-    padding: 10px 12px;
-    border-bottom: 1px solid rgba(46,50,72,.5);
-    font-size: 13px; vertical-align: middle;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,.02); cursor: pointer; }
-  .mono { font-family: var(--font-mono); font-size: 12px; }
+.logo-slash {
+  color: var(--muted); font-size: 12px;
+  font-family: var(--font-data);
+}
 
-  /* ── Risk tier badges ────────────────────────────────────── */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 700;
-    font-family: var(--font-mono); letter-spacing: .05em;
-  }
-  .badge-CRITICAL { background: rgba(229,62,62,.2); color: var(--critical); }
-  .badge-HIGH     { background: rgba(221,107,32,.2); color: var(--high); }
-  .badge-MEDIUM   { background: rgba(214,158,46,.2); color: var(--medium); }
-  .badge-LOW      { background: rgba(56,161,105,.2); color: var(--low); }
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
 
-  /* ── Risk score bar ──────────────────────────────────────── */
-  .score-bar {
-    display: flex; align-items: center; gap: 8px;
-  }
-  .bar-track {
-    height: 4px; background: var(--surface2);
-    border-radius: 2px; flex: 1;
-  }
-  .bar-fill {
-    height: 100%; border-radius: 2px;
-    background: linear-gradient(90deg, var(--low), var(--accent), var(--critical));
-  }
-  .score-num { font-family: var(--font-mono); font-size: 12px; min-width: 28px; }
+.api-input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: var(--font-data);
+  width: 240px;
+  transition: border-color .2s;
+}
 
-  /* ── Detail panel ────────────────────────────────────────── */
-  .detail-panel {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    display: none;
-  }
-  .detail-panel.open { display: block; }
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-top: 14px;
-  }
-  .detail-field label {
-    font-size: 10px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .07em;
-    font-weight: 600; display: block; margin-bottom: 3px;
-  }
-  .detail-field value {
-    font-family: var(--font-mono); font-size: 13px;
-    display: block;
-  }
+.api-input:focus {
+  outline: none;
+  border-color: var(--purple);
+  box-shadow: 0 0 10px rgba(123,47,247,0.2);
+}
 
-  /* ── SHAP bars ───────────────────────────────────────────── */
-  .shap-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-  .shap-row { display: flex; align-items: center; gap: 10px; }
-  .shap-feat {
-    font-family: var(--font-mono); font-size: 11px;
-    color: var(--muted); min-width: 200px;
-  }
-  .shap-track {
-    flex: 1; height: 12px; background: var(--surface);
-    border-radius: 3px; overflow: hidden;
-    display: flex; align-items: center;
-  }
-  .shap-pos { background: var(--critical); height: 100%; border-radius: 3px; }
-  .shap-neg { background: var(--low);      height: 100%; border-radius: 3px; }
-  .shap-val {
-    font-family: var(--font-mono); font-size: 10px;
-    color: var(--muted); min-width: 60px; text-align: right;
-  }
+.api-input::placeholder { color: var(--muted); }
 
-  /* ── AI analyst ──────────────────────────────────────────── */
-  .analyst-box {
-    display: flex; flex-direction: column; gap: 14px;
-  }
-  .chat-history {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 16px; min-height: 180px;
-    max-height: 380px; overflow-y: auto;
-    font-size: 13px; line-height: 1.7;
-    display: flex; flex-direction: column; gap: 16px;
-  }
-  .chat-msg { display: flex; flex-direction: column; gap: 4px; }
-  .chat-role {
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .1em;
-    font-family: var(--font-mono);
-  }
-  .chat-role.user { color: var(--accent2); }
-  .chat-role.agent { color: var(--accent); }
-  .chat-text { color: var(--text); white-space: pre-wrap; }
-  .chat-empty { color: var(--muted); font-style: italic; align-self: center; margin: auto 0; }
-  .analyst-input-row {
-    display: flex; gap: 10px;
-  }
-  .analyst-input {
-    flex: 1;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 10px 14px;
-    border-radius: 8px; font-size: 13px; font-family: var(--font-body);
-  }
-  .analyst-input:focus { outline: none; border-color: var(--accent); }
-  .btn {
-    background: var(--accent); color: #000;
-    border: none; padding: 10px 20px;
-    border-radius: 8px; font-size: 13px; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
-    transition: opacity .15s;
-  }
-  .btn:hover { opacity: .85; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-ghost {
-    background: var(--surface2); color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .suggested-qs {
-    display: flex; flex-wrap: wrap; gap: 8px;
-  }
-  .suggested-q {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--muted); padding: 5px 12px;
-    border-radius: 20px; font-size: 12px; cursor: pointer;
-    transition: all .15s;
-  }
-  .suggested-q:hover { color: var(--text); border-color: var(--muted); }
+.status-pill {
+  font-size: 11px;
+  font-family: var(--font-data);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: var(--muted);
+}
 
-  /* ── Forecast table ──────────────────────────────────────── */
-  .best-row td { color: var(--accent); }
+/* ── Sidebar ─────────────────────────────────────────────────── */
+nav {
+  background: rgba(6,6,15,0.6);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  overflow-y: auto;
+  position: relative;
+}
 
-  /* ── Loading spinner ─────────────────────────────────────── */
-  .spinner {
-    display: inline-block; width: 14px; height: 14px;
-    border: 2px solid var(--border); border-top-color: var(--accent);
-    border-radius: 50%; animation: spin .6s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+.nav-section {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 14px 18px 6px;
+}
 
-  /* ── Error message ───────────────────────────────────────── */
-  .error-msg {
-    background: rgba(229,62,62,.1); border: 1px solid rgba(229,62,62,.3);
-    color: #fc8181; padding: 10px 14px; border-radius: 6px; font-size: 12px;
-  }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px; font-weight: 500;
+  border-left: 2px solid transparent;
+  transition: all .2s;
+  position: relative;
+}
 
-  /* ── Scrollbar ───────────────────────────────────────────── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+.nav-item.active {
+  color: var(--text);
+  border-left-color: var(--purple);
+  background: rgba(123,47,247,0.1);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(to left, rgba(123,47,247,0.08), transparent);
+}
+
+.nav-icon {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+/* ── Main ────────────────────────────────────────────────────── */
+main {
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+main::-webkit-scrollbar { width: 4px; }
+main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* ── Pages ───────────────────────────────────────────────────── */
+.page { display: none; flex-direction: column; gap: 16px; }
+.page.active { display: flex; }
+
+.page-title {
+  font-family: var(--font-data);
+  font-size: 17px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.page-sub {
+  font-size: 12px; color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Stat cards ──────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+/* unique glow per card using nth-child */
+.stat-card:nth-child(1) { border-top: 2px solid var(--cyan); }
+.stat-card:nth-child(1):hover { box-shadow: 0 8px 32px rgba(0,245,212,0.15); }
+
+.stat-card:nth-child(2) { border-top: 2px solid var(--purple2); }
+.stat-card:nth-child(2):hover { box-shadow: 0 8px 32px rgba(168,85,247,0.15); }
+
+.stat-card:nth-child(3) { border-top: 2px solid var(--pink); }
+.stat-card:nth-child(3):hover { box-shadow: 0 8px 32px rgba(255,60,172,0.2); }
+
+.stat-card:nth-child(4) { border-top: 2px solid var(--gold); }
+.stat-card:nth-child(4):hover { box-shadow: 0 8px 32px rgba(255,184,0,0.15); }
+
+.stat-card:nth-child(5) { border-top: 2px solid var(--critical); }
+.stat-card:nth-child(5):hover { box-shadow: 0 8px 32px rgba(255,60,172,0.25); }
+
+.stat-card:nth-child(6) { border-top: 2px solid var(--high); }
+.stat-card:nth-child(6):hover { box-shadow: 0 8px 32px rgba(255,107,53,0.15); }
+
+/* shimmer overlay */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  50%  { left: 120%; }
+  100% { left: 120%; }
+}
+
+.stat-label {
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-family: var(--font-data);
+  font-size: 22px; font-weight: 700;
+  margin: 6px 0 3px;
+  line-height: 1;
+}
+
+/* value colors per card */
+.stat-card:nth-child(1) .stat-value { color: var(--cyan); }
+.stat-card:nth-child(2) .stat-value { color: var(--purple2); }
+.stat-card:nth-child(3) .stat-value { color: var(--pink); }
+.stat-card:nth-child(4) .stat-value { color: var(--gold); }
+.stat-card:nth-child(5) .stat-value { color: var(--critical); }
+.stat-card:nth-child(6) .stat-value { color: var(--high); }
+
+.stat-sub { font-size: 10px; color: var(--muted); }
+
+/* ── Glass cards ─────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
+  font-family: var(--font-data);
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+}
+
+.card-body { padding: 16px; }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; }
+
+th {
+  text-align: left;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+
+tr:hover td {
+  background: rgba(123,47,247,0.05);
+  cursor: pointer;
+}
+
+.mono {
+  font-family: var(--font-data);
+  font-size: 11px;
+}
+
+/* ── Badges ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  font-family: var(--font-data);
+  letter-spacing: .05em;
+}
+
+.badge-CRITICAL {
+  background: rgba(255,60,172,0.15);
+  color: var(--critical);
+  border: 1px solid rgba(255,60,172,0.3);
+  box-shadow: 0 0 8px rgba(255,60,172,0.2);
+}
+
+.badge-HIGH {
+  background: rgba(255,107,53,0.15);
+  color: var(--high);
+  border: 1px solid rgba(255,107,53,0.3);
+}
+
+.badge-MEDIUM {
+  background: rgba(255,184,0,0.15);
+  color: var(--medium);
+  border: 1px solid rgba(255,184,0,0.3);
+}
+
+.badge-LOW {
+  background: rgba(0,255,135,0.1);
+  color: var(--low);
+  border: 1px solid rgba(0,255,135,0.2);
+}
+
+/* ── Risk score bar ──────────────────────────────────────────── */
+.score-bar {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.bar-track {
+  height: 5px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--low), var(--gold), var(--high), var(--critical));
+}
+
+.score-num {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text);
+  min-width: 28px;
+}
+
+/* ── Detail panel ────────────────────────────────────────────── */
+.detail-panel {
+  background: rgba(123,47,247,0.06);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(123,47,247,0.2);
+  border-radius: 14px;
+  padding: 20px;
+  display: none;
+}
+
+.detail-panel.open { display: block; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.detail-field label {
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+  font-weight: 600; display: block; margin-bottom: 3px;
+}
+
+.detail-field value {
+  font-family: var(--font-data);
+  font-size: 12px; display: block;
+}
+
+/* ── SHAP bars ───────────────────────────────────────────────── */
+.shap-list { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+
+.shap-row { display: flex; align-items: center; gap: 10px; }
+
+.shap-feat {
+  font-family: var(--font-data);
+  font-size: 10px; color: var(--muted);
+  min-width: 190px;
+}
+
+.shap-track {
+  flex: 1; height: 14px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.shap-pos {
+  background: linear-gradient(90deg, var(--pink), rgba(255,60,172,0.4));
+  height: 100%; border-radius: 4px;
+}
+
+.shap-neg {
+  background: linear-gradient(90deg, var(--cyan), rgba(0,245,212,0.4));
+  height: 100%; border-radius: 4px;
+}
+
+.shap-val {
+  font-family: var(--font-data);
+  font-size: 10px; color: var(--muted);
+  min-width: 60px; text-align: right;
+}
+
+/* ── AI Analyst ──────────────────────────────────────────────── */
+.analyst-box { display: flex; flex-direction: column; gap: 12px; }
+
+.chat-history {
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 200px; max-height: 360px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.chat-msg { display: flex; flex-direction: column; gap: 4px; }
+
+.chat-role {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  font-family: var(--font-data);
+}
+
+.chat-role.user { color: var(--cyan); }
+.chat-role.agent { color: var(--pink); }
+
+.chat-text { color: var(--text); white-space: pre-wrap; font-size: 13px; }
+.chat-empty { color: var(--muted); font-style: italic; margin: auto; }
+
+.suggested-qs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.suggested-q {
+  background: rgba(123,47,247,0.1);
+  border: 1px solid rgba(123,47,247,0.25);
+  color: var(--purple2);
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 11px; cursor: pointer;
+  transition: all .2s;
+}
+
+.suggested-q:hover {
+  background: rgba(123,47,247,0.2);
+  color: var(--text);
+  border-color: var(--purple);
+}
+
+.analyst-input-row { display: flex; gap: 10px; }
+
+.analyst-input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  transition: border-color .2s;
+}
+
+.analyst-input:focus {
+  outline: none;
+  border-color: var(--purple);
+  box-shadow: 0 0 12px rgba(123,47,247,0.2);
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-data);
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+  box-shadow: 0 4px 15px rgba(123,47,247,0.3);
+}
+
+.btn:hover { opacity: .9; transform: translateY(-1px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* ── Forecast best row ───────────────────────────────────────── */
+.best-row td { color: var(--cyan); }
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+.spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error ───────────────────────────────────────────────────── */
+.error-msg {
+  background: rgba(255,60,172,0.08);
+  border: 1px solid rgba(255,60,172,0.2);
+  color: var(--critical);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ── Critical row pulse ──────────────────────────────────────── */
+tr.critical-row td:first-child {
+  position: relative;
+}
+
+tr.critical-row td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 4px; top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 4px;
+  background: var(--critical);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--critical);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
 </style>
 </head>
 <body>
 
 <div class="shell">
 
-  <!-- Header -->
   <header>
     <div class="logo-mark">FS</div>
-    <div>
-      <div class="logo-text">Financial Sentinel</div>
-    </div>
-    <div class="logo-sub">/ risk intelligence</div>
+    <div class="logo-text">Financial Sentinel</div>
+    <span class="logo-slash">/ risk intelligence</span>
     <div class="header-right">
       <input class="api-input" id="apiKeyInput"
              type="password" placeholder="Gemini API key (for AI analyst)">
-      <span class="pill" id="serverStatus">API: checking…</span>
+      <span class="status-pill" id="serverStatus">checking…</span>
     </div>
   </header>
 
-  <!-- Sidebar nav -->
   <nav>
     <div class="nav-section">Monitor</div>
     <div class="nav-item active" onclick="showPage('overview')">
@@ -393,28 +663,27 @@
     </div>
   </nav>
 
-  <!-- Main content -->
   <main>
 
-    <!-- ── OVERVIEW PAGE ──────────────────────────────────── -->
+    <!-- OVERVIEW -->
     <div class="page active" id="page-overview">
       <div>
         <div class="page-title">⬡ Portfolio Overview</div>
         <div class="page-sub">Real-time risk intelligence across all transactions</div>
       </div>
 
-      <div class="stats-grid" id="statsGrid">
+      <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Transactions</div>
           <div class="stat-value" id="s-total">—</div>
           <div class="stat-sub">across all periods</div>
         </div>
-        <div class="stat-card accent-card">
+        <div class="stat-card">
           <div class="stat-label">Total Spend</div>
           <div class="stat-value" id="s-spend">—</div>
           <div class="stat-sub">₹ Lakhs</div>
         </div>
-        <div class="stat-card danger-card">
+        <div class="stat-card">
           <div class="stat-label">Potential Exposure</div>
           <div class="stat-value" id="s-exposure">—</div>
           <div class="stat-sub">in true-risk transactions</div>
@@ -424,10 +693,10 @@
           <div class="stat-value" id="s-flagged">—</div>
           <div class="stat-sub">detected by system</div>
         </div>
-        <div class="stat-card danger-card">
+        <div class="stat-card">
           <div class="stat-label">Critical Alerts</div>
           <div class="stat-value" id="s-critical">—</div>
-          <div class="stat-sub">require immediate review</div>
+          <div class="stat-sub">immediate review</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">High Alerts</div>
@@ -452,22 +721,20 @@
         </div>
       </div>
 
-      <!-- Detail panel shown on row click -->
       <div class="detail-panel" id="detailPanel">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;font-size:15px" id="detailTitle">Transaction Detail</span>
-          <span style="cursor:pointer;color:var(--muted)" onclick="closeDetail()">✕</span>
+          <span style="font-weight:700;font-size:14px;font-family:var(--font-data)" id="detailTitle">Transaction Detail</span>
+          <span style="cursor:pointer;color:var(--muted);font-size:16px" onclick="closeDetail()">✕</span>
         </div>
         <div class="detail-grid" id="detailGrid"></div>
-        <div style="margin-top:16px;font-size:12px;font-weight:600;color:var(--muted);
-             text-transform:uppercase;letter-spacing:.07em">
+        <div style="margin-top:16px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">
           Why flagged — SHAP feature contributions
         </div>
         <div class="shap-list" id="shapList"></div>
       </div>
     </div>
 
-    <!-- ── ALERTS PAGE ────────────────────────────────────── -->
+    <!-- ALERTS -->
     <div class="page" id="page-alerts">
       <div>
         <div class="page-title">⚑ Risk Alerts</div>
@@ -489,19 +756,18 @@
       </div>
       <div class="detail-panel" id="detailPanel2">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;font-size:15px" id="detailTitle2">Transaction Detail</span>
-          <span style="cursor:pointer;color:var(--muted)" onclick="closeDetail2()">✕</span>
+          <span style="font-weight:700;font-size:14px;font-family:var(--font-data)" id="detailTitle2">Transaction Detail</span>
+          <span style="cursor:pointer;color:var(--muted);font-size:16px" onclick="closeDetail2()">✕</span>
         </div>
         <div class="detail-grid" id="detailGrid2"></div>
-        <div style="margin-top:16px;font-size:12px;font-weight:600;color:var(--muted);
-             text-transform:uppercase;letter-spacing:.07em">
+        <div style="margin-top:16px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">
           SHAP feature contributions
         </div>
         <div class="shap-list" id="shapList2"></div>
       </div>
     </div>
 
-    <!-- ── FORECAST PAGE ──────────────────────────────────── -->
+    <!-- FORECAST -->
     <div class="page" id="page-forecast">
       <div>
         <div class="page-title">◈ Spending Forecast</div>
@@ -516,7 +782,7 @@
             </thead>
             <tbody id="forecastBody"></tbody>
           </table>
-          <div style="margin-top:14px;font-size:12px;color:var(--muted)">
+          <div style="margin-top:14px;font-size:11px;color:var(--muted)">
             <b style="color:var(--text)">MAE</b> = average monthly rupee error &nbsp;|&nbsp;
             <b style="color:var(--text)">MAPE</b> = error as % of actual spend (lower = better)
           </div>
@@ -524,7 +790,7 @@
       </div>
     </div>
 
-    <!-- ── TRENDS PAGE ────────────────────────────────────── -->
+    <!-- TRENDS -->
     <div class="page" id="page-trends">
       <div>
         <div class="page-title">↗ Drift Alerts</div>
@@ -537,7 +803,7 @@
       </div>
     </div>
 
-    <!-- ── ANALYST PAGE ───────────────────────────────────── -->
+    <!-- ANALYST -->
     <div class="page" id="page-analyst">
       <div>
         <div class="page-title">✦ AI Financial Analyst</div>
@@ -574,7 +840,6 @@
 <script>
 const API = 'http://localhost:8000';
 
-// ── Utility ──────────────────────────────────────────────────
 const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 0});
 const fmtL = n => (n / 100000).toFixed(1) + 'L';
 const fmtScore = s => Number(s).toFixed(1);
@@ -590,7 +855,6 @@ function scoreBar(s) {
   </div>`;
 }
 
-// ── Page navigation ──────────────────────────────────────────
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -600,18 +864,17 @@ function showPage(name) {
   if (name === 'trends')   loadTrends();
 }
 
-// ── Server health check ──────────────────────────────────────
 async function checkServer() {
   try {
     const r = await fetch(API + '/');
     const d = await r.json();
     document.getElementById('serverStatus').textContent = '● API connected';
-    document.getElementById('serverStatus').style.color = '#38a169';
+    document.getElementById('serverStatus').style.color = '#00ff87';
     loadOverview();
     loadAlerts();
   } catch {
     document.getElementById('serverStatus').textContent = '○ API offline';
-    document.getElementById('serverStatus').style.color = '#e53e3e';
+    document.getElementById('serverStatus').style.color = '#ff3cac';
     showOfflineMessage();
   }
 }
@@ -620,27 +883,22 @@ function showOfflineMessage() {
   document.getElementById('overviewBody').innerHTML =
     `<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:24px">
       Start the API server first:<br>
-      <code style="font-family:var(--font-mono);color:var(--accent)">
-        uvicorn api.main:app --reload --port 8000
+      <code style="font-family:var(--font-data);color:var(--cyan)">
+        python -m uvicorn api.main:app --reload --port 8000
       </code>
     </td></tr>`;
 }
 
-// ── Overview ─────────────────────────────────────────────────
 async function loadOverview() {
   try {
     const [summary, risks] = await Promise.all([
       fetch(API + '/risk-summary').then(r => r.json()),
       fetch(API + '/alerts?k=5').then(r => r.json()),
     ]);
-    document.getElementById('s-total').textContent =
-      Number(summary.total_transactions).toLocaleString();
-    document.getElementById('s-spend').textContent =
-      fmtL(summary.total_spend_inr);
-    document.getElementById('s-exposure').textContent =
-      fmtL(summary.potential_exposure_inr);
-    document.getElementById('s-flagged').textContent =
-      Number(summary.flagged_anomalies).toLocaleString();
+    document.getElementById('s-total').textContent = Number(summary.total_transactions).toLocaleString();
+    document.getElementById('s-spend').textContent = fmtL(summary.total_spend_inr);
+    document.getElementById('s-exposure').textContent = fmtL(summary.potential_exposure_inr);
+    document.getElementById('s-flagged').textContent = Number(summary.flagged_anomalies).toLocaleString();
     document.getElementById('s-critical').textContent = summary.critical_alerts;
     document.getElementById('s-high').textContent = summary.high_alerts;
 
@@ -648,13 +906,14 @@ async function loadOverview() {
     tbody.innerHTML = '';
     risks.top_risks.forEach((r, i) => {
       const tr = document.createElement('tr');
+      if (r.risk_tier === 'CRITICAL') tr.classList.add('critical-row');
       tr.innerHTML = `
-        <td class="mono" style="color:var(--muted)">${i + 1}</td>
-        <td class="mono">${r.transaction_id}</td>
-        <td class="mono">${fmt(r.amount_inr)}</td>
-        <td>${r.department}</td>
-        <td>${r.category}</td>
-        <td><span style="font-size:11px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
+        <td class="mono" style="color:var(--muted);padding-left:16px">${i + 1}</td>
+        <td class="mono" style="color:var(--cyan)">${r.transaction_id}</td>
+        <td class="mono" style="color:var(--text)">${fmt(r.amount_inr)}</td>
+        <td style="color:var(--text)">${r.department}</td>
+        <td style="color:var(--muted)">${r.category}</td>
+        <td><span style="font-size:10px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
         <td>${scoreBar(r.risk_score)}</td>
         <td>${badge(r.risk_tier)}</td>`;
       tr.onclick = () => loadDetail(r.transaction_id, 'detailPanel', 'detailGrid', 'shapList', 'detailTitle');
@@ -663,7 +922,6 @@ async function loadOverview() {
   } catch(e) { console.error(e); }
 }
 
-// ── Alerts ───────────────────────────────────────────────────
 async function loadAlerts() {
   try {
     const data = await fetch(API + '/alerts?k=20').then(r => r.json());
@@ -671,15 +929,16 @@ async function loadAlerts() {
     tbody.innerHTML = '';
     data.top_risks.forEach((r, i) => {
       const tr = document.createElement('tr');
+      if (r.risk_tier === 'CRITICAL') tr.classList.add('critical-row');
       const ts = new Date(r.timestamp).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
       tr.innerHTML = `
-        <td class="mono" style="color:var(--muted)">${i + 1}</td>
-        <td class="mono">${r.transaction_id}</td>
+        <td class="mono" style="color:var(--muted);padding-left:16px">${i + 1}</td>
+        <td class="mono" style="color:var(--cyan)">${r.transaction_id}</td>
         <td class="mono" style="color:var(--muted)">${ts}</td>
-        <td class="mono">${fmt(r.amount_inr)}</td>
-        <td class="mono">${r.employee_id}</td>
-        <td class="mono">${r.vendor_id}</td>
-        <td><span style="font-size:11px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
+        <td class="mono" style="color:var(--text)">${fmt(r.amount_inr)}</td>
+        <td class="mono" style="color:var(--purple2)">${r.employee_id}</td>
+        <td class="mono" style="color:var(--muted)">${r.vendor_id}</td>
+        <td><span style="font-size:10px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
         <td>${scoreBar(r.risk_score)}</td>
         <td>${badge(r.risk_tier)}</td>`;
       tr.onclick = () => loadDetail(r.transaction_id, 'detailPanel2', 'detailGrid2', 'shapList2', 'detailTitle2');
@@ -688,7 +947,6 @@ async function loadAlerts() {
   } catch(e) { console.error(e); }
 }
 
-// ── Detail panel ─────────────────────────────────────────────
 async function loadDetail(txId, panelId, gridId, shapId, titleId) {
   const panel = document.getElementById(panelId);
   panel.classList.add('open');
@@ -699,18 +957,18 @@ async function loadDetail(txId, panelId, gridId, shapId, titleId) {
   try {
     const d = await fetch(API + '/alerts/' + txId).then(r => r.json());
     const fields = [
-      ['Amount',         fmt(d.amount_inr)],
-      ['Risk Score',     fmtScore(d.risk_score) + ' / 100'],
-      ['Risk Tier',      badge(d.risk_tier)],
-      ['Anomaly Type',   d.anomaly_type.replace(/_/g,' ')],
-      ['Employee',       d.employee_id + ' · ' + d.department],
-      ['Vendor',         d.vendor_id + ' · ' + d.category],
-      ['Employee Avg',   fmt(d.employee_avg_spend)],
-      ['Vendor Avg',     fmt(d.vendor_avg_spend)],
-      ['Employee Z',     (d.emp_z_score > 0 ? '+' : '') + d.emp_z_score.toFixed(2)],
-      ['Vendor Z',       (d.vendor_z_score > 0 ? '+' : '') + d.vendor_z_score.toFixed(2)],
-      ['True Risk',      d.true_risk ? '✓ Yes' : '✗ No'],
-      ['Timestamp',      new Date(d.timestamp).toLocaleString('en-IN')],
+      ['Amount',       fmt(d.amount_inr)],
+      ['Risk Score',   fmtScore(d.risk_score) + ' / 100'],
+      ['Risk Tier',    badge(d.risk_tier)],
+      ['Anomaly Type', d.anomaly_type.replace(/_/g,' ')],
+      ['Employee',     d.employee_id + ' · ' + d.department],
+      ['Vendor',       d.vendor_id + ' · ' + d.category],
+      ['Employee Avg', fmt(d.employee_avg_spend)],
+      ['Vendor Avg',   fmt(d.vendor_avg_spend)],
+      ['Employee Z',   (d.emp_z_score > 0 ? '+' : '') + d.emp_z_score.toFixed(2)],
+      ['Vendor Z',     (d.vendor_z_score > 0 ? '+' : '') + d.vendor_z_score.toFixed(2)],
+      ['True Risk',    d.true_risk ? '✓ Yes' : '✗ No'],
+      ['Timestamp',    new Date(d.timestamp).toLocaleString('en-IN')],
     ];
     document.getElementById(gridId).innerHTML =
       fields.map(([l, v]) => `
@@ -718,7 +976,6 @@ async function loadDetail(txId, panelId, gridId, shapId, titleId) {
           <label>${l}</label><value>${v}</value>
         </div>`).join('');
 
-    // SHAP bars
     if (d.shap_top_drivers && d.shap_top_drivers.length) {
       const maxAbsShap = Math.max(...d.shap_top_drivers.map(s => Math.abs(s.contribution)));
       document.getElementById(shapId).innerHTML =
@@ -730,22 +987,20 @@ async function loadDetail(txId, panelId, gridId, shapId, titleId) {
             <div class="shap-track">
               <div class="${isPos ? 'shap-pos' : 'shap-neg'}" style="width:${pct}%"></div>
             </div>
-            <span class="shap-val" style="color:${isPos ? 'var(--critical)' : 'var(--low)'}">
+            <span class="shap-val" style="color:${isPos ? 'var(--critical)' : 'var(--cyan)'}">
               ${isPos ? '+' : ''}${s.contribution.toFixed(4)}
             </span>
           </div>`;
         }).join('');
     }
   } catch(e) {
-    document.getElementById(gridId).innerHTML =
-      `<div class="error-msg">Failed to load transaction details.</div>`;
+    document.getElementById(gridId).innerHTML = `<div class="error-msg">Failed to load transaction details.</div>`;
   }
 }
 
 function closeDetail()  { document.getElementById('detailPanel').classList.remove('open'); }
 function closeDetail2() { document.getElementById('detailPanel2').classList.remove('open'); }
 
-// ── Forecast ─────────────────────────────────────────────────
 async function loadForecast() {
   try {
     const data = await fetch(API + '/forecast').then(r => r.json());
@@ -758,49 +1013,40 @@ async function loadForecast() {
       const tr = document.createElement('tr');
       if (isBest) tr.classList.add('best-row');
       tr.innerHTML = `
-        <td>${m.model || m.index} ${isBest ? '← best' : ''}</td>
+        <td style="font-family:var(--font-data)">${m.model || m.index} ${isBest ? '<span style="color:var(--cyan);font-size:10px">← best</span>' : ''}</td>
         <td class="mono">${Number(m.MAE).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
         <td class="mono">${Number(m.RMSE).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
         <td class="mono">${Number(m.MAPE).toFixed(2)}%</td>
-        <td>${isBest ? '✓' : ''}</td>`;
+        <td style="color:var(--cyan)">${isBest ? '✓' : ''}</td>`;
       tbody.appendChild(tr);
     });
   } catch(e) { console.error(e); }
 }
 
-// ── Trends ───────────────────────────────────────────────────
 async function loadTrends() {
   try {
     const data = await fetch(API + '/trends').then(r => r.json());
     const body = document.getElementById('trendsBody');
     if (!data.trend_alerts || data.trend_alerts.length === 0) {
-      body.innerHTML = `<div style="color:var(--muted);font-style:italic">
-        ${data.note || 'No significant spending drift detected.'}
-      </div>`;
+      body.innerHTML = `<div style="color:var(--muted);font-style:italic">${data.note || 'No significant spending drift detected.'}</div>`;
     } else {
       body.innerHTML = `<table>
         <thead><tr>
           <th>Type</th><th>Name</th><th>Change</th>
           <th>R²</th><th>Slope / month</th><th>Start → End</th>
-        </tr></thead>
-        <tbody>` +
-        data.trend_alerts.map(t => `
-          <tr>
-            <td><span class="badge badge-HIGH">${t.type}</span></td>
-            <td>${t.name}</td>
-            <td class="mono" style="color:var(--critical)">+${t.pct_change}%</td>
-            <td class="mono">${t.r_squared}</td>
-            <td class="mono">₹${t.monthly_slope_lakhs}L</td>
-            <td class="mono" style="color:var(--muted)">
-              ₹${t.spend_start_L}L → ₹${t.spend_end_L}L
-            </td>
-          </tr>`).join('') +
-        '</tbody></table>';
+        </tr></thead><tbody>` +
+        data.trend_alerts.map(t => `<tr>
+          <td><span class="badge badge-HIGH">${t.type}</span></td>
+          <td style="font-family:var(--font-data)">${t.name}</td>
+          <td class="mono" style="color:var(--critical)">+${t.pct_change}%</td>
+          <td class="mono">${t.r_squared}</td>
+          <td class="mono">₹${t.monthly_slope_lakhs}L</td>
+          <td class="mono" style="color:var(--muted)">₹${t.spend_start_L}L → ₹${t.spend_end_L}L</td>
+        </tr>`).join('') + '</tbody></table>';
     }
   } catch(e) { console.error(e); }
 }
 
-// ── AI Analyst ───────────────────────────────────────────────
 async function submitAnalyst() {
   const input  = document.getElementById('analystInput');
   const btn    = document.getElementById('analystBtn');
@@ -818,20 +1064,16 @@ async function submitAnalyst() {
   const history = document.getElementById('chatHistory');
   document.getElementById('chatEmpty')?.remove();
 
-  // Show user message
-  history.innerHTML += `
-    <div class="chat-msg">
-      <span class="chat-role user">You</span>
-      <span class="chat-text">${q}</span>
-    </div>`;
+  history.innerHTML += `<div class="chat-msg">
+    <span class="chat-role user">You</span>
+    <span class="chat-text">${q}</span>
+  </div>`;
 
-  // Show loading
   const loadId = 'load-' + Date.now();
-  history.innerHTML += `
-    <div class="chat-msg" id="${loadId}">
-      <span class="chat-role agent">Sentinel</span>
-      <span class="chat-text"><span class="spinner"></span> Calling data tools…</span>
-    </div>`;
+  history.innerHTML += `<div class="chat-msg" id="${loadId}">
+    <span class="chat-role agent">Sentinel</span>
+    <span class="chat-text"><span class="spinner"></span> Calling data tools…</span>
+  </div>`;
   history.scrollTop = history.scrollHeight;
 
   input.value = '';
@@ -862,7 +1104,6 @@ function askSuggested(el) {
   submitAnalyst();
 }
 
-// ── Init ─────────────────────────────────────────────────────
 checkServer();
 </script>
 </body>
