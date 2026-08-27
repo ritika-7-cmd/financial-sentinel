@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Sentinel</title>
+<style>
+  /* ── Design tokens ──────────────────────────────────────────
+     Palette: deep navy base, amber alert accent, slate secondary.
+     Chosen to read like a professional risk terminal — not a
+     startup landing page. Every color has a semantic meaning:
+       --bg: base background
+       --surface: card/panel surfaces
+       --border: subtle dividers
+       --text: primary text
+       --muted: secondary/meta text
+       --accent: the risk signal color (amber — universally
+         understood as "pay attention")
+       --critical / --high / --medium / --low: risk tiers
+  ────────────────────────────────────────────────────────── */
+  :root {
+    --bg:       #0f1117;
+    --surface:  #1a1d27;
+    --surface2: #22263a;
+    --border:   #2e3248;
+    --text:     #e8eaf0;
+    --muted:    #7a7f9a;
+    --accent:   #f5a623;
+    --accent2:  #4a9eff;
+    --critical: #e53e3e;
+    --high:     #dd6b20;
+    --medium:   #d69e2e;
+    --low:      #38a169;
+    --font-mono: 'JetBrains Mono', 'Fira Mono', 'Consolas', monospace;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: #000;
+  }
+  .logo-text {
+    font-size: 15px; font-weight: 700; letter-spacing: .02em;
+  }
+  .logo-sub {
+    font-size: 11px; color: var(--muted); margin-left: 2px;
+    font-family: var(--font-mono);
+  }
+  .header-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .api-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    width: 260px;
+  }
+  .api-input::placeholder { color: var(--muted); }
+  .pill {
+    font-size: 11px; font-family: var(--font-mono);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 8px; border-radius: 4px; color: var(--muted);
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  nav {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .nav-section {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); padding: 12px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 20px; cursor: pointer;
+    color: var(--muted); font-size: 13px;
+    border-left: 2px solid transparent;
+    transition: all .15s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--accent); border-left-color: var(--accent);
+    background: rgba(245,166,35,.06);
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* ── Main content ────────────────────────────────────────── */
+  main {
+    overflow-y: auto;
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+
+  /* ── Pages ───────────────────────────────────────────────── */
+  .page { display: none; flex-direction: column; gap: 20px; }
+  .page.active { display: flex; }
+
+  /* ── Page titles ─────────────────────────────────────────── */
+  .page-title {
+    font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .page-sub { font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+
+  /* ── Stat cards ──────────────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stat-label {
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
+  }
+  .stat-value {
+    font-size: 26px; font-weight: 800;
+    font-family: var(--font-mono);
+    margin: 4px 0 2px; line-height: 1;
+  }
+  .stat-sub { font-size: 11px; color: var(--muted); }
+  .stat-card.accent-card { border-color: rgba(245,166,35,.3); }
+  .stat-card.accent-card .stat-value { color: var(--accent); }
+  .stat-card.danger-card { border-color: rgba(229,62,62,.3); }
+  .stat-card.danger-card .stat-value { color: var(--critical); }
+
+  /* ── Cards / panels ──────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-body { padding: 18px; }
+
+  /* ── Alert table ─────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(46,50,72,.5);
+    font-size: 13px; vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); cursor: pointer; }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+
+  /* ── Risk tier badges ────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 700;
+    font-family: var(--font-mono); letter-spacing: .05em;
+  }
+  .badge-CRITICAL { background: rgba(229,62,62,.2); color: var(--critical); }
+  .badge-HIGH     { background: rgba(221,107,32,.2); color: var(--high); }
+  .badge-MEDIUM   { background: rgba(214,158,46,.2); color: var(--medium); }
+  .badge-LOW      { background: rgba(56,161,105,.2); color: var(--low); }
+
+  /* ── Risk score bar ──────────────────────────────────────── */
+  .score-bar {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .bar-track {
+    height: 4px; background: var(--surface2);
+    border-radius: 2px; flex: 1;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--low), var(--accent), var(--critical));
+  }
+  .score-num { font-family: var(--font-mono); font-size: 12px; min-width: 28px; }
+
+  /* ── Detail panel ────────────────────────────────────────── */
+  .detail-panel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    display: none;
+  }
+  .detail-panel.open { display: block; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .detail-field label {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .07em;
+    font-weight: 600; display: block; margin-bottom: 3px;
+  }
+  .detail-field value {
+    font-family: var(--font-mono); font-size: 13px;
+    display: block;
+  }
+
+  /* ── SHAP bars ───────────────────────────────────────────── */
+  .shap-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .shap-row { display: flex; align-items: center; gap: 10px; }
+  .shap-feat {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--muted); min-width: 200px;
+  }
+  .shap-track {
+    flex: 1; height: 12px; background: var(--surface);
+    border-radius: 3px; overflow: hidden;
+    display: flex; align-items: center;
+  }
+  .shap-pos { background: var(--critical); height: 100%; border-radius: 3px; }
+  .shap-neg { background: var(--low);      height: 100%; border-radius: 3px; }
+  .shap-val {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--muted); min-width: 60px; text-align: right;
+  }
+
+  /* ── AI analyst ──────────────────────────────────────────── */
+  .analyst-box {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .chat-history {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; min-height: 180px;
+    max-height: 380px; overflow-y: auto;
+    font-size: 13px; line-height: 1.7;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .chat-msg { display: flex; flex-direction: column; gap: 4px; }
+  .chat-role {
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    font-family: var(--font-mono);
+  }
+  .chat-role.user { color: var(--accent2); }
+  .chat-role.agent { color: var(--accent); }
+  .chat-text { color: var(--text); white-space: pre-wrap; }
+  .chat-empty { color: var(--muted); font-style: italic; align-self: center; margin: auto 0; }
+  .analyst-input-row {
+    display: flex; gap: 10px;
+  }
+  .analyst-input {
+    flex: 1;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 14px;
+    border-radius: 8px; font-size: 13px; font-family: var(--font-body);
+  }
+  .analyst-input:focus { outline: none; border-color: var(--accent); }
+  .btn {
+    background: var(--accent); color: #000;
+    border: none; padding: 10px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-ghost {
+    background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .suggested-qs {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .suggested-q {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); padding: 5px 12px;
+    border-radius: 20px; font-size: 12px; cursor: pointer;
+    transition: all .15s;
+  }
+  .suggested-q:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ── Forecast table ──────────────────────────────────────── */
+  .best-row td { color: var(--accent); }
+
+  /* ── Loading spinner ─────────────────────────────────────── */
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Error message ───────────────────────────────────────── */
+  .error-msg {
+    background: rgba(229,62,62,.1); border: 1px solid rgba(229,62,62,.3);
+    color: #fc8181; padding: 10px 14px; border-radius: 6px; font-size: 12px;
+  }
+
+  /* ── Scrollbar ───────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-mark">FS</div>
+    <div>
+      <div class="logo-text">Financial Sentinel</div>
+    </div>
+    <div class="logo-sub">/ risk intelligence</div>
+    <div class="header-right">
+      <input class="api-input" id="apiKeyInput"
+             type="password" placeholder="Gemini API key (for AI analyst)">
+      <span class="pill" id="serverStatus">API: checking…</span>
+    </div>
+  </header>
+
+  <!-- Sidebar nav -->
+  <nav>
+    <div class="nav-section">Monitor</div>
+    <div class="nav-item active" onclick="showPage('overview')">
+      <span class="nav-icon">⬡</span> Overview
+    </div>
+    <div class="nav-item" onclick="showPage('alerts')">
+      <span class="nav-icon">⚑</span> Risk Alerts
+    </div>
+    <div class="nav-section">Intelligence</div>
+    <div class="nav-item" onclick="showPage('forecast')">
+      <span class="nav-icon">◈</span> Forecast
+    </div>
+    <div class="nav-item" onclick="showPage('trends')">
+      <span class="nav-icon">↗</span> Drift Alerts
+    </div>
+    <div class="nav-section">AI</div>
+    <div class="nav-item" onclick="showPage('analyst')">
+      <span class="nav-icon">✦</span> AI Analyst
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main>
+
+    <!-- ── OVERVIEW PAGE ──────────────────────────────────── -->
+    <div class="page active" id="page-overview">
+      <div>
+        <div class="page-title">⬡ Portfolio Overview</div>
+        <div class="page-sub">Real-time risk intelligence across all transactions</div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label">Total Transactions</div>
+          <div class="stat-value" id="s-total">—</div>
+          <div class="stat-sub">across all periods</div>
+        </div>
+        <div class="stat-card accent-card">
+          <div class="stat-label">Total Spend</div>
+          <div class="stat-value" id="s-spend">—</div>
+          <div class="stat-sub">₹ Lakhs</div>
+        </div>
+        <div class="stat-card danger-card">
+          <div class="stat-label">Potential Exposure</div>
+          <div class="stat-value" id="s-exposure">—</div>
+          <div class="stat-sub">in true-risk transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Flagged Anomalies</div>
+          <div class="stat-value" id="s-flagged">—</div>
+          <div class="stat-sub">detected by system</div>
+        </div>
+        <div class="stat-card danger-card">
+          <div class="stat-label">Critical Alerts</div>
+          <div class="stat-value" id="s-critical">—</div>
+          <div class="stat-sub">require immediate review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">High Alerts</div>
+          <div class="stat-value" id="s-high">—</div>
+          <div class="stat-sub">review within 24h</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">⚑ Top 5 Risks — click a row to inspect</div>
+        <div style="overflow-x:auto">
+          <table id="overviewTable">
+            <thead>
+              <tr>
+                <th>#</th><th>Transaction</th><th>Amount</th>
+                <th>Department</th><th>Category</th>
+                <th>Anomaly Type</th><th>Risk Score</th><th>Tier</th>
+              </tr>
+            </thead>
+            <tbody id="overviewBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detail panel shown on row click -->
+      <div class="detail-panel" id="detailPanel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700;font-size:15px" id="detailTitle">Transaction Detail</span>
+          <span style="cursor:pointer;color:var(--muted)" onclick="closeDetail()">✕</span>
+        </div>
+        <div class="detail-grid" id="detailGrid"></div>
+        <div style="margin-top:16px;font-size:12px;font-weight:600;color:var(--muted);
+             text-transform:uppercase;letter-spacing:.07em">
+          Why flagged — SHAP feature contributions
+        </div>
+        <div class="shap-list" id="shapList"></div>
+      </div>
+    </div>
+
+    <!-- ── ALERTS PAGE ────────────────────────────────────── -->
+    <div class="page" id="page-alerts">
+      <div>
+        <div class="page-title">⚑ Risk Alerts</div>
+        <div class="page-sub">Top 20 transactions ranked by risk score. Click any row for full SHAP breakdown.</div>
+      </div>
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table id="alertsTable">
+            <thead>
+              <tr>
+                <th>#</th><th>Transaction</th><th>Timestamp</th><th>Amount</th>
+                <th>Employee</th><th>Vendor</th><th>Anomaly Type</th>
+                <th>Risk Score</th><th>Tier</th>
+              </tr>
+            </thead>
+            <tbody id="alertsBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="detail-panel" id="detailPanel2">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700;font-size:15px" id="detailTitle2">Transaction Detail</span>
+          <span style="cursor:pointer;color:var(--muted)" onclick="closeDetail2()">✕</span>
+        </div>
+        <div class="detail-grid" id="detailGrid2"></div>
+        <div style="margin-top:16px;font-size:12px;font-weight:600;color:var(--muted);
+             text-transform:uppercase;letter-spacing:.07em">
+          SHAP feature contributions
+        </div>
+        <div class="shap-list" id="shapList2"></div>
+      </div>
+    </div>
+
+    <!-- ── FORECAST PAGE ──────────────────────────────────── -->
+    <div class="page" id="page-forecast">
+      <div>
+        <div class="page-title">◈ Spending Forecast</div>
+        <div class="page-sub">Three-model comparison: Moving Average vs Exponential Smoothing vs ARIMA</div>
+      </div>
+      <div class="card">
+        <div class="card-header">Model Comparison (3-month holdout)</div>
+        <div class="card-body">
+          <table id="forecastTable">
+            <thead>
+              <tr><th>Model</th><th>MAE (₹)</th><th>RMSE (₹)</th><th>MAPE (%)</th><th></th></tr>
+            </thead>
+            <tbody id="forecastBody"></tbody>
+          </table>
+          <div style="margin-top:14px;font-size:12px;color:var(--muted)">
+            <b style="color:var(--text)">MAE</b> = average monthly rupee error &nbsp;|&nbsp;
+            <b style="color:var(--text)">MAPE</b> = error as % of actual spend (lower = better)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TRENDS PAGE ────────────────────────────────────── -->
+    <div class="page" id="page-trends">
+      <div>
+        <div class="page-title">↗ Drift Alerts</div>
+        <div class="page-sub">Departments or categories with sustained upward spending trends</div>
+      </div>
+      <div class="card" id="trendsCard">
+        <div class="card-body" id="trendsBody">
+          <div style="color:var(--muted);font-style:italic">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYST PAGE ───────────────────────────────────── -->
+    <div class="page" id="page-analyst">
+      <div>
+        <div class="page-title">✦ AI Financial Analyst</div>
+        <div class="page-sub">Ask questions in plain English — the agent retrieves real evidence before answering.</div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="analyst-box">
+            <div class="chat-history" id="chatHistory">
+              <div class="chat-empty" id="chatEmpty">
+                Ask a question to begin. The agent will call real data tools to answer.
+              </div>
+            </div>
+            <div class="suggested-qs">
+              <div class="suggested-q" onclick="askSuggested(this)">What should I investigate today?</div>
+              <div class="suggested-q" onclick="askSuggested(this)">What is the overall risk picture?</div>
+              <div class="suggested-q" onclick="askSuggested(this)">How accurate were the spending forecasts?</div>
+              <div class="suggested-q" onclick="askSuggested(this)">Which department has the most exposure?</div>
+            </div>
+            <div class="analyst-input-row">
+              <input class="analyst-input" id="analystInput"
+                     placeholder="e.g. Why is the top alert risky?" onkeydown="analystEnter(event)">
+              <button class="btn" id="analystBtn" onclick="submitAnalyst()">Ask</button>
+            </div>
+            <div id="analystError"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+
+// ── Utility ──────────────────────────────────────────────────
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 0});
+const fmtL = n => (n / 100000).toFixed(1) + 'L';
+const fmtScore = s => Number(s).toFixed(1);
+
+function badge(tier) {
+  return `<span class="badge badge-${tier}">${tier}</span>`;
+}
+
+function scoreBar(s) {
+  return `<div class="score-bar">
+    <div class="bar-track"><div class="bar-fill" style="width:${s}%"></div></div>
+    <span class="score-num">${fmtScore(s)}</span>
+  </div>`;
+}
+
+// ── Page navigation ──────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'forecast') loadForecast();
+  if (name === 'trends')   loadTrends();
+}
+
+// ── Server health check ──────────────────────────────────────
+async function checkServer() {
+  try {
+    const r = await fetch(API + '/');
+    const d = await r.json();
+    document.getElementById('serverStatus').textContent = '● API connected';
+    document.getElementById('serverStatus').style.color = '#38a169';
+    loadOverview();
+    loadAlerts();
+  } catch {
+    document.getElementById('serverStatus').textContent = '○ API offline';
+    document.getElementById('serverStatus').style.color = '#e53e3e';
+    showOfflineMessage();
+  }
+}
+
+function showOfflineMessage() {
+  document.getElementById('overviewBody').innerHTML =
+    `<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:24px">
+      Start the API server first:<br>
+      <code style="font-family:var(--font-mono);color:var(--accent)">
+        uvicorn api.main:app --reload --port 8000
+      </code>
+    </td></tr>`;
+}
+
+// ── Overview ─────────────────────────────────────────────────
+async function loadOverview() {
+  try {
+    const [summary, risks] = await Promise.all([
+      fetch(API + '/risk-summary').then(r => r.json()),
+      fetch(API + '/alerts?k=5').then(r => r.json()),
+    ]);
+    document.getElementById('s-total').textContent =
+      Number(summary.total_transactions).toLocaleString();
+    document.getElementById('s-spend').textContent =
+      fmtL(summary.total_spend_inr);
+    document.getElementById('s-exposure').textContent =
+      fmtL(summary.potential_exposure_inr);
+    document.getElementById('s-flagged').textContent =
+      Number(summary.flagged_anomalies).toLocaleString();
+    document.getElementById('s-critical').textContent = summary.critical_alerts;
+    document.getElementById('s-high').textContent = summary.high_alerts;
+
+    const tbody = document.getElementById('overviewBody');
+    tbody.innerHTML = '';
+    risks.top_risks.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono" style="color:var(--muted)">${i + 1}</td>
+        <td class="mono">${r.transaction_id}</td>
+        <td class="mono">${fmt(r.amount_inr)}</td>
+        <td>${r.department}</td>
+        <td>${r.category}</td>
+        <td><span style="font-size:11px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
+        <td>${scoreBar(r.risk_score)}</td>
+        <td>${badge(r.risk_tier)}</td>`;
+      tr.onclick = () => loadDetail(r.transaction_id, 'detailPanel', 'detailGrid', 'shapList', 'detailTitle');
+      tbody.appendChild(tr);
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Alerts ───────────────────────────────────────────────────
+async function loadAlerts() {
+  try {
+    const data = await fetch(API + '/alerts?k=20').then(r => r.json());
+    const tbody = document.getElementById('alertsBody');
+    tbody.innerHTML = '';
+    data.top_risks.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      const ts = new Date(r.timestamp).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+      tr.innerHTML = `
+        <td class="mono" style="color:var(--muted)">${i + 1}</td>
+        <td class="mono">${r.transaction_id}</td>
+        <td class="mono" style="color:var(--muted)">${ts}</td>
+        <td class="mono">${fmt(r.amount_inr)}</td>
+        <td class="mono">${r.employee_id}</td>
+        <td class="mono">${r.vendor_id}</td>
+        <td><span style="font-size:11px;color:var(--muted)">${r.anomaly_type.replace(/_/g,' ')}</span></td>
+        <td>${scoreBar(r.risk_score)}</td>
+        <td>${badge(r.risk_tier)}</td>`;
+      tr.onclick = () => loadDetail(r.transaction_id, 'detailPanel2', 'detailGrid2', 'shapList2', 'detailTitle2');
+      tbody.appendChild(tr);
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Detail panel ─────────────────────────────────────────────
+async function loadDetail(txId, panelId, gridId, shapId, titleId) {
+  const panel = document.getElementById(panelId);
+  panel.classList.add('open');
+  document.getElementById(titleId).textContent = txId;
+  document.getElementById(gridId).innerHTML = '<div style="color:var(--muted)">Loading…</div>';
+  document.getElementById(shapId).innerHTML = '';
+
+  try {
+    const d = await fetch(API + '/alerts/' + txId).then(r => r.json());
+    const fields = [
+      ['Amount',         fmt(d.amount_inr)],
+      ['Risk Score',     fmtScore(d.risk_score) + ' / 100'],
+      ['Risk Tier',      badge(d.risk_tier)],
+      ['Anomaly Type',   d.anomaly_type.replace(/_/g,' ')],
+      ['Employee',       d.employee_id + ' · ' + d.department],
+      ['Vendor',         d.vendor_id + ' · ' + d.category],
+      ['Employee Avg',   fmt(d.employee_avg_spend)],
+      ['Vendor Avg',     fmt(d.vendor_avg_spend)],
+      ['Employee Z',     (d.emp_z_score > 0 ? '+' : '') + d.emp_z_score.toFixed(2)],
+      ['Vendor Z',       (d.vendor_z_score > 0 ? '+' : '') + d.vendor_z_score.toFixed(2)],
+      ['True Risk',      d.true_risk ? '✓ Yes' : '✗ No'],
+      ['Timestamp',      new Date(d.timestamp).toLocaleString('en-IN')],
+    ];
+    document.getElementById(gridId).innerHTML =
+      fields.map(([l, v]) => `
+        <div class="detail-field">
+          <label>${l}</label><value>${v}</value>
+        </div>`).join('');
+
+    // SHAP bars
+    if (d.shap_top_drivers && d.shap_top_drivers.length) {
+      const maxAbsShap = Math.max(...d.shap_top_drivers.map(s => Math.abs(s.contribution)));
+      document.getElementById(shapId).innerHTML =
+        d.shap_top_drivers.map(s => {
+          const pct = Math.abs(s.contribution) / maxAbsShap * 100;
+          const isPos = s.contribution > 0;
+          return `<div class="shap-row">
+            <span class="shap-feat">${s.feature.replace(/_/g,' ')}</span>
+            <div class="shap-track">
+              <div class="${isPos ? 'shap-pos' : 'shap-neg'}" style="width:${pct}%"></div>
+            </div>
+            <span class="shap-val" style="color:${isPos ? 'var(--critical)' : 'var(--low)'}">
+              ${isPos ? '+' : ''}${s.contribution.toFixed(4)}
+            </span>
+          </div>`;
+        }).join('');
+    }
+  } catch(e) {
+    document.getElementById(gridId).innerHTML =
+      `<div class="error-msg">Failed to load transaction details.</div>`;
+  }
+}
+
+function closeDetail()  { document.getElementById('detailPanel').classList.remove('open'); }
+function closeDetail2() { document.getElementById('detailPanel2').classList.remove('open'); }
+
+// ── Forecast ─────────────────────────────────────────────────
+async function loadForecast() {
+  try {
+    const data = await fetch(API + '/forecast').then(r => r.json());
+    const models = data.forecast_models;
+    const bestMape = Math.min(...models.map(m => m.MAPE));
+    const tbody = document.getElementById('forecastBody');
+    tbody.innerHTML = '';
+    models.forEach(m => {
+      const isBest = m.MAPE === bestMape;
+      const tr = document.createElement('tr');
+      if (isBest) tr.classList.add('best-row');
+      tr.innerHTML = `
+        <td>${m.model || m.index} ${isBest ? '← best' : ''}</td>
+        <td class="mono">${Number(m.MAE).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+        <td class="mono">${Number(m.RMSE).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+        <td class="mono">${Number(m.MAPE).toFixed(2)}%</td>
+        <td>${isBest ? '✓' : ''}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ── Trends ───────────────────────────────────────────────────
+async function loadTrends() {
+  try {
+    const data = await fetch(API + '/trends').then(r => r.json());
+    const body = document.getElementById('trendsBody');
+    if (!data.trend_alerts || data.trend_alerts.length === 0) {
+      body.innerHTML = `<div style="color:var(--muted);font-style:italic">
+        ${data.note || 'No significant spending drift detected.'}
+      </div>`;
+    } else {
+      body.innerHTML = `<table>
+        <thead><tr>
+          <th>Type</th><th>Name</th><th>Change</th>
+          <th>R²</th><th>Slope / month</th><th>Start → End</th>
+        </tr></thead>
+        <tbody>` +
+        data.trend_alerts.map(t => `
+          <tr>
+            <td><span class="badge badge-HIGH">${t.type}</span></td>
+            <td>${t.name}</td>
+            <td class="mono" style="color:var(--critical)">+${t.pct_change}%</td>
+            <td class="mono">${t.r_squared}</td>
+            <td class="mono">₹${t.monthly_slope_lakhs}L</td>
+            <td class="mono" style="color:var(--muted)">
+              ₹${t.spend_start_L}L → ₹${t.spend_end_L}L
+            </td>
+          </tr>`).join('') +
+        '</tbody></table>';
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ── AI Analyst ───────────────────────────────────────────────
+async function submitAnalyst() {
+  const input  = document.getElementById('analystInput');
+  const btn    = document.getElementById('analystBtn');
+  const errDiv = document.getElementById('analystError');
+  const q      = input.value.trim();
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+
+  errDiv.innerHTML = '';
+  if (!q) return;
+  if (!apiKey) {
+    errDiv.innerHTML = '<div class="error-msg">Enter your Gemini API key in the header first.</div>';
+    return;
+  }
+
+  const history = document.getElementById('chatHistory');
+  document.getElementById('chatEmpty')?.remove();
+
+  // Show user message
+  history.innerHTML += `
+    <div class="chat-msg">
+      <span class="chat-role user">You</span>
+      <span class="chat-text">${q}</span>
+    </div>`;
+
+  // Show loading
+  const loadId = 'load-' + Date.now();
+  history.innerHTML += `
+    <div class="chat-msg" id="${loadId}">
+      <span class="chat-role agent">Sentinel</span>
+      <span class="chat-text"><span class="spinner"></span> Calling data tools…</span>
+    </div>`;
+  history.scrollTop = history.scrollHeight;
+
+  input.value = '';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(API + '/analyst/query', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q, api_key: apiKey}),
+    });
+    const data = await res.json();
+    document.getElementById(loadId).innerHTML = `
+      <span class="chat-role agent">Sentinel</span>
+      <span class="chat-text">${data.answer || data.detail || 'No response.'}</span>`;
+  } catch(e) {
+    document.getElementById(loadId).innerHTML = `
+      <span class="chat-role agent">Sentinel</span>
+      <span class="chat-text error-msg">Request failed — is the API server running?</span>`;
+  }
+  history.scrollTop = history.scrollHeight;
+  btn.disabled = false;
+}
+
+function analystEnter(e) { if (e.key === 'Enter') submitAnalyst(); }
+function askSuggested(el) {
+  document.getElementById('analystInput').value = el.textContent;
+  submitAnalyst();
+}
+
+// ── Init ─────────────────────────────────────────────────────
+checkServer();
+</script>
+</body>
+</html>
